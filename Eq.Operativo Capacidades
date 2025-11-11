@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen de Proveedores por Equipamiento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Usamos Montserrat como una alternativa gratuita y similar a Proxima Nova -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', 'Proxima Nova', sans-serif;
+            background-color: #FFFFFF;
+            color: #333333;
+        }
+        .font-bold { font-weight: 700; }
+        .pill-title {
+            background-color: #FFE600;
+            color: #333333;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-size: 1.5rem;
+            display: inline-block;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .equipment-block {
+            background-color: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            border-radius: 0.75rem;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .equipment-title {
+            font-size: 1.75rem;
+            color: #333333;
+            margin-bottom: 1rem;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            flex-grow: 1;
+        }
+        .data-table th, .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .data-table th {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .country-name { font-size: 1.1rem; font-weight: 700; }
+        .provider-details { font-size: 0.9rem; color: #555; }
+        .provider-count { font-size: 1.1rem; font-weight: 700; }
+        
+        .capacity-pill {
+            display: inline-block;
+            background-color: #333333;
+            color: #FFFFFF;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            text-align: center;
+            min-width: 90px;
+        }
+        .capacity-pill.wip {
+            background-color: #0ea5e9; /* Azul Cielo */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="w-full max-w-screen-2xl mx-auto">
+        <!-- Logo -->
+        <header class="flex justify-end mb-8">
+            <img src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/5.21.22/mercadolibre/logo__large_plus.png" alt="Logo Mercado Libre" class="h-8">
+        </header>
+        
+        <!-- Título -->
+        <div class="text-center mb-12">
+            <h1 class="pill-title font-bold">Estado de Proveedores y Capacidad</h1>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Bloque TOTES -->
+            <div class="equipment-block flex-1">
+                <h2 class="equipment-title font-bold">📦 Totes</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="w-1/5">País</th>
+                            <th class="w-1/5 text-center">Nº Prov.</th>
+                            <th class="w-2/5">Detalle</th>
+                            <th class="w-1/5 text-center">Cap. Mensual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="country-name">MLB</td>
+                            <td class="text-center provider-count">2</td>
+                            <td class="provider-details">Novel, Ecoboxes</td>
+                            <td class="text-center"><span class="capacity-pill">100.000</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLM</td>
+                            <td class="text-center provider-count">3</td>
+                            <td class="provider-details">Orbis*, Mercico, Innovar</td>
+                            <td class="text-center"><span class="capacity-pill">80.000</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLA</td>
+                            <td class="text-center provider-count">2</td>
+                            <td class="provider-details">Multienvases, Novel*</td>
+                            <td class="text-center"><span class="capacity-pill">50.000</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLC</td>
+                            <td class="text-center provider-count">3</td>
+                            <td class="provider-details">Novel, Ecoboxes, RPC*</td>
+                            <td class="text-center"><span class="capacity-pill">50.000</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MCO</td>
+                            <td class="text-center provider-count">1</td>
+                            <td class="provider-details">Mercico</td>
+                            <td class="text-center"><span class="capacity-pill">50.000</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bloque CARROS -->
+            <div class="equipment-block flex-1">
+                <h2 class="equipment-title font-bold">🛒 Carros</h2>
+                <table class="data-table">
+                     <thead>
+                        <tr>
+                            <th class="w-1/5">País</th>
+                            <th class="w-1/5 text-center">Nº Prov.</th>
+                            <th class="w-2/5">Detalle</th>
+                            <th class="w-1/5 text-center">Cap. Mensual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="country-name">MLB</td>
+                            <td class="text-center provider-count">4</td>
+                            <td class="provider-details">MKL, Dtech (Modulares)<br>Form E Art, ELLAN (Soldados)</td>
+                            <td class="text-center"><span class="capacity-pill">600</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLM</td>
+                            <td class="text-center provider-count">4</td>
+                            <td class="provider-details">GMH, 360, BIS, Gemys</td>
+                            <td class="text-center"><span class="capacity-pill">120</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLA</td>
+                            <td class="text-center provider-count">3</td>
+                            <td class="provider-details">WTS, World Trade Services, HTS</td>
+                            <td class="text-center"><span class="capacity-pill">120</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLC</td>
+                            <td class="text-center provider-count">1</td>
+                            <td class="provider-details">LS modulares</td>
+                            <td class="text-center"><span class="capacity-pill">120</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MCO</td>
+                            <td class="text-center provider-count">1</td>
+                            <td class="provider-details">Ideas Lean</td>
+                            <td class="text-center"><span class="capacity-pill">100</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bloque MESAS -->
+            <div class="equipment-block flex-1">
+                <h2 class="equipment-title font-bold">🛠️ Mesas - Problem Solver</h2>
+                <p class="text-sm text-gray-500" style="margin-top:-0.5rem; margin-bottom:1rem;">En proceso de actualización</p>
+                 <table class="data-table">
+                     <thead>
+                        <tr>
+                            <th class="w-1/5">País</th>
+                            <th class="w-1/5 text-center">Nº Prov.</th>
+                            <th class="w-2/5">Detalle</th>
+                            <th class="w-1/5 text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="country-name">MLB</td>
+                            <td class="text-center provider-count">2</td>
+                            <td class="provider-details">DTECH, Lockpipe</td>
+                            <td class="text-center"><span class="capacity-pill wip">WIP</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLC</td>
+                            <td class="text-center provider-count">1</td>
+                            <td class="provider-details">Intermob</td>
+                            <td class="text-center"><span class="capacity-pill wip">WIP</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLM</td>
+                            <td class="text-center provider-count">0</td>
+                            <td class="provider-details">-</td>
+                            <td class="text-center"><span class="capacity-pill wip">WIP</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MLA</td>
+                            <td class="text-center provider-count">0</td>
+                            <td class="provider-details">-</td>
+                            <td class="text-center"><span class="capacity-pill wip">WIP</span></td>
+                        </tr>
+                        <tr>
+                            <td class="country-name">MCO</td>
+                            <td class="text-center provider-count">0</td>
+                            <td class="provider-details">-</td>
+                            <td class="text-center"><span class="capacity-pill wip">WIP</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
