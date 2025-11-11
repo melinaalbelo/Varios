@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flujo Unificado de Generación y Compra de Equipamiento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --meli-yellow: #FFF159;
+            --meli-blue: #666666; /* Azul reemplazado por gris */
+            --meli-dark-gray: #333333;
+            --meli-gray: #666666;
+            --meli-light-gray: #F5F5F5;
+            --meli-background: #EBEBEB;
+            --meli-white: #FFFFFF;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--meli-background);
+            color: var(--meli-dark-gray);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1200px; /* Ancho ajustado para 3 columnas */
+            background-color: var(--meli-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2.5rem;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--meli-yellow);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 5200px; /* Altura aumentada para el flujo completo */
+            background-color: #fafafa;
+            border-radius: var(--border-radius);
+            overflow: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columnas para un flujo más claro */
+            grid-template-rows: repeat(29, 1fr);
+            gap: 60px 20px;
+            height: calc(100% - 40px);
+            position: relative;
+            padding-top: 40px;
+        }
+
+        .node-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .flow-node {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-weight: 600;
+            font-size: 0.85rem;
+            width: 180px;
+            min-height: 70px;
+            box-sizing: border-box;
+            transition: transform 0.2s;
+            z-index: 2;
+        }
+        
+        .flow-node:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        .node-section-title {
+            grid-column: 1 / 4;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 1rem;
+            background-color: var(--meli-dark-gray);
+            color: var(--meli-white);
+            border-radius: var(--border-radius);
+        }
+
+        .node-process { background-color: var(--meli-yellow); }
+        .node-start, .node-milestone { background-color: var(--meli-blue); color: var(--meli-white); }
+        .node-end { background-color: var(--meli-dark-gray); color: var(--meli-white); }
+        .node-secondary { background-color: var(--meli-white); border: 1px solid #ccc; }
+        
+        .node-decision {
+            background-color: var(--meli-white);
+            border: 2px solid var(--meli-blue);
+            transform: rotate(45deg);
+            width: 140px;
+            height: 140px;
+            padding: 0;
+        }
+        .node-decision p {
+             transform: rotate(-45deg);
+        }
+
+        .responsible-tag {
+            position: absolute;
+            top: -30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            z-index: 3;
+        }
+        
+        .resp-cie { background-color: #cce5ff; color: #004085; }
+        .resp-compras { background-color: #d4edda; color: #155724; }
+        .resp-proveedor { background-color: #fff3cd; color: #856404; }
+        .resp-equipo { background-color: #f8d7da; color: #721c24; }
+        .resp-mdi { background-color: #e2e3e5; color: #383d41; }
+        .resp-finanzas { background-color: #d1ecf1; color: #0c5460; }
+        
+        .connector-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .connector-path {
+            fill: none;
+            stroke: var(--meli-gray);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+        }
+        
+        .connector-label {
+            position: absolute;
+            background: #fafafa;
+            color: var(--meli-dark-gray);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1>Flujo Unificado de Generación y Compra de Equipamiento</h1>
+        </header>
+        <div class="canvas-container">
+            <div class="grid-layout" id="grid-layout">
+                <!-- Los nodos se insertarán aquí por JS -->
+            </div>
+            <svg class="connector-svg" id="svg-connectors"></svg>
+            <div id="connector-labels"></div>
+        </div>
+    </div>
+
+    <script>
+        const gridLayout = document.getElementById('grid-layout');
+        const svgConnectors = document.getElementById('svg-connectors');
+        const labelContainer = document.getElementById('connector-labels');
+
+        const nodes = [
+            // --- PROCESO 1: GENERACIÓN DE NUEVO RTD ---
+            { id: 'title-generacion', text: 'PROCESO DE GENERACIÓN DE NUEVO RTD', type: 'section-title', row: 1, col: 1 },
+            { id: 'start-generacion', text: 'Análisis Conceptual y MTM', type: 'start', row: 2, col: 2, resp: { text: 'MDI', class: 'resp-mdi' } },
+            { id: 'decision-diseno-regional', text: '¿Existe Diseño Regional?', type: 'decision', row: 3, col: 2 },
+            // Sub-flujo: Sin Diseño Regional
+            { id: 'diseno-provisional', text: 'Elaborar Diseño Provisional', type: 'secondary', row: 4, col: 1, resp: { text: 'MDI/Proveedor', class: 'resp-mdi' } },
+            { id: 'revision-tecnica', text: 'Revisión Técnica Multiárea (SHE/CIE)', type: 'process', row: 5, col: 1, resp: { text: 'SHE/CIE', class: 'resp-equipo' } },
+            // Sub-flujo: Con Diseño Regional
+            { id: 'solicitar-info-regional', text: 'Solicitar Info y Specs Regionales', type: 'process', row: 4, col: 3, resp: { text: 'CIE Local', class: 'resp-cie' } },
+            { id: 'iniciar-licitacion-proto', text: 'Iniciar Licitación para Prototipo', type: 'secondary', row: 5, col: 3, resp: { text: 'Compras/CIE', class: 'resp-compras' } },
+            // Convergencia
+            { id: 'decision-diseno-ok', text: '¿Diseño Aprobado?', type: 'decision', row: 6, col: 2 },
+            { id: 'fabricar-prototipo', text: 'Fabricar Prototipo', type: 'milestone', row: 7, col: 2, resp: { text: 'Proveedor', class: 'resp-proveedor' } },
+            { id: 'recepcion-verificacion', text: 'Recepción y Verificación de Prototipo', type: 'process', row: 8, col: 2, resp: { text: 'Equipo Multi.', class: 'resp-equipo' } },
+            { id: 'prueba-estres', text: 'Testeo en Piso y Validación MTM', type: 'secondary', row: 9, col: 2, resp: { text: 'MDI/CIE', class: 'resp-mdi' } },
+            { id: 'decision-ajustes', text: '¿Requiere Ajustes?', type: 'decision', row: 10, col: 2 },
+            { id: 'ejecutar-modificaciones', text: 'Definir y Ejecutar Modificaciones', type: 'process', row: 11, col: 1, resp: { text: 'Proveedor', class: 'resp-proveedor' } },
+            { id: 'consolidar-feedback', text: 'Aprobación Formal y Consolidar Feedback', type: 'process', row: 11, col: 2, resp: { text: 'MDI/CIE', class: 'resp-mdi' } },
+            { id: 'crear-hoja-rtd', text: 'Crear Hoja Técnica RTD', type: 'secondary', row: 12, col: 2, resp: { text: 'MDI', class: 'resp-mdi' } },
+            { id: 'comunicacion-final', text: 'Alta en WOW, LUP y Notificación Regional', type: 'process', row: 13, col: 2, resp: { text: 'MDI/SHE/Start Up', class: 'resp-mdi' } },
+            { id: 'fin-generacion', text: 'Generación y Publicación del Nuevo Estándar RTD', type: 'end', row: 14, col: 2 },
+            
+            // --- PROCESO 2: COMPRA DE RTD ESTANDARIZADO (UNIFICADO) ---
+            { id: 'title-compra', text: 'PROCESO UNIFICADO DE COMPRA DE EQUIPAMIENTO RTD', type: 'section-title', row: 16, col: 1 },
+            { id: 'start-compra', text: 'Solicitud de Compra de RTDs', type: 'start', row: 17, col: 2, resp: { text: 'CIE Local', class: 'resp-cie' } },
+            { id: 'crear-bc', text: 'Crear Business Case', type: 'process', row: 18, col: 2, resp: { text: 'CIE/MDI', class: 'resp-cie' } },
+            { id: 'aprobar-bc', text: 'Presentar y Aprobar BC', type: 'secondary', row: 19, col: 2, resp: { text: 'Finanzas/CIE', class: 'resp-finanzas' } },
+            { id: 'decision-bc-ok', text: '¿Business Case Aprobado?', type: 'decision', row: 20, col: 2 },
+            { id: 'licitacion-adjudicacion', text: 'Licitación y Adjudicación', type: 'process', row: 21, col: 2, resp: { text: 'Compras', class: 'resp-compras' } },
+            { id: 'decision-costo-10pct', text: '¿Es 1ra compra post-prototipo Y Costo > 10% vs 2do?', type: 'decision', row: 22, col: 2 },
+            { id: 'solicitar-prototipo-2do', text: 'Solicitar Prototipo a 2do Proveedor', type: 'process', row: 23, col: 1, resp: {text: 'Compras', class: 'resp-compras'} },
+            { id: 'decision-requiere-muestra', text: '¿Proveedor requiere muestra?', type: 'decision', row: 23, col: 2 },
+            { id: 'solicitar-muestra', text: 'Solicitar Muestra para Validación', type: 'secondary', row: 24, col: 3, resp: { text: 'Proveedor', class: 'resp-proveedor' } },
+            { id: 'validar-muestra', text: 'Validación de Muestra Multiárea', type: 'process', row: 25, col: 3, resp: { text: 'Equipo Multi.', class: 'resp-equipo' } },
+            { id: 'decision-muestra-ok', text: '¿Muestra Cumple Specs?', type: 'decision', row: 26, col: 3 },
+            { id: 'feedback-proveedor', text: 'Enviar Feedback a Proveedor', type: 'process', row: 27, col: 3, resp: { text: 'PE/Compras', class: 'resp-compras' } },
+            { id: 'generar-oc-produccion', text: 'Generar OC y Autorizar Producción', type: 'milestone', row: 24, col: 2, resp: { text: 'CIE/Compras', class: 'resp-cie' } },
+            { id: 'recepcion-equipos', text: 'Recepción de Equipos en Sitio', type: 'process', row: 25, col: 2, resp: { text: 'Proveedor', class: 'resp-proveedor' } },
+            { id: 'validacion-lote', text: 'Validación Parcial del Lote', type: 'secondary', row: 26, col: 2, resp: { text: 'PE/CIE/SHE', class: 'resp-equipo' } },
+            { id: 'decision-lote-ok', text: '¿Lote OK?', type: 'decision', row: 27, col: 2 },
+            { id: 'feedback-penalizacion', text: 'Activar Feedback y Penalización', type: 'process', row: 28, col: 1, resp: { text: 'Compras', class: 'resp-compras' } },
+            { id: 'fin-compra', text: 'Fin del Proceso de Compra', type: 'end', row: 28, col: 2 },
+        ];
+
+        const connections = [
+            // --- Conexiones Proceso Generación ---
+            { from: 'start-generacion', to: 'decision-diseno-regional' },
+            { from: 'decision-diseno-regional', to: 'diseno-provisional', label: 'No' },
+            { from: 'diseno-provisional', to: 'revision-tecnica' },
+            { from: 'revision-tecnica', to: 'decision-diseno-ok' },
+            { from: 'decision-diseno-regional', to: 'solicitar-info-regional', label: 'Sí' },
+            { from: 'solicitar-info-regional', to: 'iniciar-licitacion-proto' },
+            { from: 'iniciar-licitacion-proto', to: 'decision-diseno-ok' },
+            { from: 'decision-diseno-ok', to: 'fabricar-prototipo', label: 'Sí' },
+            { from: 'decision-diseno-ok', to: 'diseno-provisional', label: 'No', curved: true },
+            { from: 'fabricar-prototipo', to: 'recepcion-verificacion' },
+            { from: 'recepcion-verificacion', to: 'prueba-estres' },
+            { from: 'prueba-estres', to: 'decision-ajustes' },
+            { from: 'decision-ajustes', to: 'ejecutar-modificaciones', label: 'Sí' },
+            { from: 'ejecutar-modificaciones', to: 'prueba-estres', curved: true },
+            { from: 'decision-ajustes', to: 'consolidar-feedback', label: 'No' },
+            { from: 'consolidar-feedback', to: 'crear-hoja-rtd' },
+            { from: 'crear-hoja-rtd', to: 'comunicacion-final' },
+            { from: 'comunicacion-final', to: 'fin-generacion' },
+            
+            // --- Conexión entre procesos ---
+            { from: 'fin-generacion', to: 'start-compra' },
+
+            // --- Conexiones Proceso Compra Unificado ---
+            { from: 'start-compra', to: 'crear-bc' },
+            { from: 'crear-bc', to: 'aprobar-bc' },
+            { from: 'aprobar-bc', to: 'decision-bc-ok' },
+            { from: 'decision-bc-ok', to: 'licitacion-adjudicacion', label: 'Sí' },
+            { from: 'decision-bc-ok', to: 'fin-compra', label: 'No' },
+            { from: 'licitacion-adjudicacion', to: 'decision-costo-10pct' },
+            { from: 'decision-costo-10pct', to: 'solicitar-prototipo-2do', label: 'Sí' },
+            { from: 'solicitar-prototipo-2do', to: 'decision-requiere-muestra' },
+            { from: 'decision-costo-10pct', to: 'decision-requiere-muestra', label: 'No' },
+            { from: 'decision-requiere-muestra', to: 'generar-oc-produccion', label: 'No' },
+            { from: 'decision-requiere-muestra', to: 'solicitar-muestra', label: 'Sí' },
+            { from: 'solicitar-muestra', to: 'validar-muestra' },
+            { from: 'validar-muestra', to: 'decision-muestra-ok' },
+            { from: 'decision-muestra-ok', to: 'generar-oc-produccion', label: 'Sí' },
+            { from: 'decision-muestra-ok', to: 'feedback-proveedor', label: 'No' },
+            { from: 'feedback-proveedor', to: 'solicitar-muestra', curved: true },
+            { from: 'generar-oc-produccion', to: 'recepcion-equipos' },
+            { from: 'recepcion-equipos', to: 'validacion-lote' },
+            { from: 'validacion-lote', to: 'decision-lote-ok' },
+            { from: 'decision-lote-ok', to: 'fin-compra', label: 'Sí' },
+            { from: 'decision-lote-ok', to: 'feedback-penalizacion', label: 'No' },
+            { from: 'feedback-penalizacion', to: 'fin-compra', curved: true },
+        ];
+        
+        function renderDiagram() {
+            gridLayout.innerHTML = '';
+            svgConnectors.innerHTML = '';
+            labelContainer.innerHTML = '';
+
+            nodes.forEach(node => {
+                const wrapper = document.createElement('div');
+                wrapper.id = `wrapper-${node.id}`;
+                wrapper.className = 'node-wrapper';
+                wrapper.style.gridRow = node.row;
+                wrapper.style.gridColumn = `${node.col} / span ${node.col === 1 && node.type === 'section-title' ? 3 : 1}`;
+                
+                const nodeEl = document.createElement('div');
+                nodeEl.id = node.id;
+                nodeEl.className = `flow-node node-${node.type}`;
+                
+                const textEl = document.createElement('p');
+                textEl.textContent = node.text;
+                nodeEl.appendChild(textEl);
+                wrapper.appendChild(nodeEl);
+                
+                if (node.resp) {
+                    const respEl = document.createElement('span');
+                    respEl.className = `responsible-tag ${node.resp.class}`;
+                    respEl.textContent = node.resp.text;
+                    wrapper.appendChild(respEl);
+                }
+                
+                gridLayout.appendChild(wrapper);
+            });
+
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrowhead');
+            marker.setAttribute('viewBox', '0 0 10 10');
+            marker.setAttribute('refX', '9');
+            marker.setAttribute('refY', '5');
+            marker.setAttribute('markerWidth', '5');
+            marker.setAttribute('markerHeight', '5');
+            marker.setAttribute('orient', 'auto-start-reverse');
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+            path.setAttribute('fill', 'var(--meli-gray)');
+            marker.appendChild(path);
+            defs.appendChild(marker);
+            svgConnectors.appendChild(defs);
+
+            setTimeout(() => {
+                connections.forEach(conn => {
+                    const fromWrapper = document.getElementById(`wrapper-${conn.from}`);
+                    const toWrapper = document.getElementById(`wrapper-${conn.to}`);
+                    
+                    if (!fromWrapper || !toWrapper) {
+                        console.warn(`Could not find wrappers for connection: ${conn.from} -> ${conn.to}`);
+                        return;
+                    }
+                    
+                    const gridRect = gridLayout.getBoundingClientRect();
+                    const fromRect = fromWrapper.getBoundingClientRect();
+                    const toRect = toWrapper.getBoundingClientRect();
+
+                    const startX = fromRect.left - gridRect.left + fromRect.width / 2;
+                    const startY = fromRect.top - gridRect.top + fromRect.height / 2;
+                    const endX = toRect.left - gridRect.left + toRect.width / 2;
+                    const endY = toRect.top - gridRect.top + toRect.height / 2;
+                    
+                    const connectorPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    let pathData;
+                    let controlX, controlY;
+
+                    if (conn.curved) {
+                         controlX = (startX + endX) / 2 + (startY - endY) * 0.4;
+                         controlY = (startY + endY) / 2 + (endX - startX) * 0.4;
+                         pathData = `M ${startX},${startY} Q ${controlX},${controlY} ${endX},${endY}`;
+                    } else {
+                         pathData = `M ${startX},${startY} L ${endX},${endY}`;
+                    }
+                    
+                    connectorPath.setAttribute('d', pathData);
+                    connectorPath.setAttribute('class', 'connector-path');
+                    connectorPath.setAttribute('marker-end', 'url(#arrowhead)');
+                    svgConnectors.appendChild(connectorPath);
+                    
+                    if (conn.label) {
+                        const labelEl = document.createElement('div');
+                        labelEl.className = 'connector-label';
+                        labelEl.textContent = conn.label;
+                        
+                        let labelX, labelY;
+                        
+                        if (conn.curved) {
+                           labelX = startX * 0.25 + controlX * 0.5 + endX * 0.25;
+                           labelY = startY * 0.25 + controlY * 0.5 + endY * 0.25;
+                        } else {
+                           labelX = (startX + endX) / 2;
+                           labelY = (startY + endY) / 2;
+                        }
+                        
+                        labelEl.style.left = `${labelX}px`;
+                        labelEl.style.top = `${labelY}px`;
+                        labelContainer.appendChild(labelEl);
+                    }
+                });
+            }, 100);
+        }
+
+        window.addEventListener('load', renderDiagram);
+        window.addEventListener('resize', renderDiagram);
+    </script>
+
+</body>
+</html>
+
