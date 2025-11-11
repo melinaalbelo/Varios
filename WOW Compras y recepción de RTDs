@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama de Flujo: Compra y Recepción de RTDs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --meli-yellow: #FFF159;
+            --meli-blue: #666666; /* Azul reemplazado por gris */
+            --meli-dark-gray: #333333;
+            --meli-gray: #666666;
+            --meli-light-gray: #F5F5F5;
+            --meli-background: #EBEBEB;
+            --meli-white: #FFFFFF;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--meli-background);
+            color: var(--meli-dark-gray);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1200px; /* Ancho intermedio */
+            background-color: var(--meli-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2.5rem;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--meli-yellow);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 1200px; /* Altura intermedia */
+            background-color: #fafafa;
+            border-radius: var(--border-radius);
+            overflow: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 columnas */
+            grid-template-rows: repeat(5, 1fr);    /* 5 filas */
+            gap: 60px 20px;
+            height: calc(100% - 40px);
+            position: relative;
+            padding-top: 40px;
+        }
+
+        .node-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .flow-node {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-weight: 600;
+            font-size: 0.85rem;
+            width: 180px;
+            min-height: 70px;
+            box-sizing: border-box;
+            transition: transform 0.2s;
+            z-index: 2;
+        }
+        
+        .flow-node:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .node-process { background-color: var(--meli-yellow); }
+        .node-start, .node-milestone { background-color: var(--meli-blue); color: var(--meli-white); }
+        .node-end { background-color: var(--meli-dark-gray); color: var(--meli-white); }
+        .node-secondary { background-color: var(--meli-white); border: 1px solid #ccc; }
+        
+        .node-decision {
+            background-color: var(--meli-white);
+            border: 2px solid var(--meli-blue);
+            transform: rotate(45deg);
+            width: 130px;
+            height: 130px;
+            padding: 0;
+        }
+        .node-decision p {
+             transform: rotate(-45deg);
+        }
+
+        .responsible-tag {
+            position: absolute;
+            top: -30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            z-index: 3;
+        }
+        
+        .resp-cie { background-color: #cce5ff; color: #004085; } /* CIE / Finanzas */
+        .resp-compras { background-color: #d4edda; color: #155724; } /* Compras */
+        .resp-proveedor { background-color: #fff3cd; color: #856404; } /* Proveedor */
+        .resp-equipo { background-color: #f8d7da; color: #721c24; } /* Equipo Multi. */
+        
+        .connector-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .connector-path {
+            fill: none;
+            stroke: var(--meli-gray);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+        }
+        
+        .connector-label {
+            position: absolute;
+            background: #fafafa;
+            color: var(--meli-dark-gray);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1>WOW Compra y Recepción de RTDs</h1>
+        </header>
+        <div class="canvas-container">
+            <div class="grid-layout" id="grid-layout">
+                <!-- Los nodos se insertarán aquí por JS -->
+            </div>
+            <svg class="connector-svg" id="svg-connectors"></svg>
+            <div id="connector-labels"></div>
+        </div>
+    </div>
+
+    <script>
+        const gridLayout = document.getElementById('grid-layout');
+        const svgConnectors = document.getElementById('svg-connectors');
+        const labelContainer = document.getElementById('connector-labels');
+
+        const nodes = [
+            // Etapa 1 & 2
+            { id: 'start', text: 'Solicitud de Compra', type: 'start', row: 1, col: 1, resp: {text: 'CIE Local', class: 'resp-cie'} },
+            { id: 'crear-bc', text: 'Crear Business Case', type: 'process', row: 1, col: 2, resp: {text: 'CIE Local', class: 'resp-cie'} },
+            { id: 'presentar-bc', text: 'Presentar BC', type: 'secondary', row: 1, col: 3, resp: {text: 'CIE/Finanzas', class: 'resp-cie'} },
+            { id: 'decision-bc', text: '¿BC Aprobado?', type: 'decision', row: 1, col: 4 },
+            
+            // Etapa 3
+            { id: 'licitacion', text: 'Licitación y Adjudicación', type: 'process', row: 2, col: 4, resp: {text: 'Compras', class: 'resp-compras'} },
+            { id: 'abrir-pr', text: 'Apertura de PR y Plan', type: 'secondary', row: 2, col: 3, resp: {text: 'CIE/Compras', class: 'resp-compras'} },
+            { id: 'fabricar-muestra', text: 'Fabricar Muestra', type: 'process', row: 2, col: 2, resp: {text: 'Proveedor', class: 'resp-proveedor'} },
+            
+            // Etapa 4
+            { id: 'validar-muestra', text: 'Validación de Muestra', type: 'process', row: 3, col: 2, resp: {text: 'Equipo Multi.', class: 'resp-equipo'} },
+            { id: 'decision-muestra', text: '¿Muestra OK?', type: 'decision', row: 3, col: 3 },
+            
+            // Etapa 5
+            { id: 'produccion', text: 'Producción en Masa', type: 'milestone', row: 4, col: 3, resp: {text: 'Proveedor', class: 'resp-proveedor'} },
+            { id: 'recepcion', text: 'Recepción de Equipos', type: 'process', row: 4, col: 2, resp: {text: 'Equipo Multi.', class: 'resp-equipo'} },
+            { id: 'validacion-final', text: 'Validación Final Lote', type: 'secondary', row: 5, col: 2, resp: {text: 'Equipo Multi.', class: 'resp-equipo'} },
+            { id: 'decision-lote', text: '¿Lote OK?', type: 'decision', row: 5, col: 3 },
+            { id: 'fin', text: 'Fin del Proceso', type: 'end', row: 5, col: 4 },
+        ];
+
+        const connections = [
+            { from: 'start', to: 'crear-bc' },
+            { from: 'crear-bc', to: 'presentar-bc' },
+            { from: 'presentar-bc', to: 'decision-bc' },
+            
+            { from: 'decision-bc', to: 'licitacion', label: 'Sí' },
+            { from: 'decision-bc', to: 'crear-bc', label: 'No', curved: true },
+            
+            { from: 'licitacion', to: 'abrir-pr' },
+            { from: 'abrir-pr', to: 'fabricar-muestra' },
+
+            { from: 'fabricar-muestra', to: 'validar-muestra' },
+            { from: 'validar-muestra', to: 'decision-muestra' },
+
+            { from: 'decision-muestra', to: 'produccion', label: 'Sí' },
+            { from: 'decision-muestra', to: 'fabricar-muestra', label: 'No', curved: true },
+            
+            { from: 'produccion', to: 'recepcion' },
+            { from: 'recepcion', to: 'validacion-final' },
+            { from: 'validacion-final', to: 'decision-lote' },
+
+            { from: 'decision-lote', to: 'fin', label: 'Sí' },
+            { from: 'decision-lote', to: 'recepcion', label: 'No', curved: true },
+        ];
+        
+        function renderDiagram() {
+            gridLayout.innerHTML = '';
+            svgConnectors.innerHTML = '';
+            labelContainer.innerHTML = '';
+
+            nodes.forEach(node => {
+                const wrapper = document.createElement('div');
+                wrapper.id = `wrapper-${node.id}`;
+                wrapper.className = 'node-wrapper';
+                wrapper.style.gridRow = node.row;
+                wrapper.style.gridColumn = node.col;
+                
+                const nodeEl = document.createElement('div');
+                nodeEl.id = node.id;
+                nodeEl.className = `flow-node node-${node.type}`;
+                
+                const textEl = document.createElement('p');
+                textEl.textContent = node.text;
+                nodeEl.appendChild(textEl);
+                wrapper.appendChild(nodeEl);
+                
+                if (node.resp) {
+                    const respEl = document.createElement('span');
+                    respEl.className = `responsible-tag ${node.resp.class}`;
+                    respEl.textContent = node.resp.text;
+                    wrapper.appendChild(respEl);
+                }
+                
+                gridLayout.appendChild(wrapper);
+            });
+
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrowhead');
+            marker.setAttribute('viewBox', '0 0 10 10');
+            marker.setAttribute('refX', '9');
+            marker.setAttribute('refY', '5');
+            marker.setAttribute('markerWidth', '5');
+            marker.setAttribute('markerHeight', '5');
+            marker.setAttribute('orient', 'auto-start-reverse');
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+            path.setAttribute('fill', 'var(--meli-gray)');
+            marker.appendChild(path);
+            defs.appendChild(marker);
+            svgConnectors.appendChild(defs);
+
+            setTimeout(() => {
+                connections.forEach(conn => {
+                    const fromWrapper = document.getElementById(`wrapper-${conn.from}`);
+                    const toWrapper = document.getElementById(`wrapper-${conn.to}`);
+                    
+                    if (!fromWrapper || !toWrapper) return;
+                    
+                    const gridRect = gridLayout.getBoundingClientRect();
+                    const fromRect = fromWrapper.getBoundingClientRect();
+                    const toRect = toWrapper.getBoundingClientRect();
+
+                    const startX = fromRect.left - gridRect.left + fromRect.width / 2;
+                    const startY = fromRect.top - gridRect.top + fromRect.height / 2;
+                    const endX = toRect.left - gridRect.left + toRect.width / 2;
+                    const endY = toRect.top - gridRect.top + toRect.height / 2;
+                    
+                    const connectorPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    let pathData;
+                    let controlX, controlY;
+
+                    if (conn.curved) {
+                         controlX = (startX + endX) / 2 + (startY - endY) * 0.4;
+                         controlY = (startY + endY) / 2 + (endX - startX) * 0.4;
+                         pathData = `M ${startX},${startY} Q ${controlX},${controlY} ${endX},${endY}`;
+                    } else {
+                         pathData = `M ${startX},${startY} L ${endX},${endY}`;
+                    }
+                    
+                    connectorPath.setAttribute('d', pathData);
+                    connectorPath.setAttribute('class', 'connector-path');
+                    connectorPath.setAttribute('marker-end', 'url(#arrowhead)');
+                    svgConnectors.appendChild(connectorPath);
+                    
+                    if (conn.label) {
+                        const labelEl = document.createElement('div');
+                        labelEl.className = 'connector-label';
+                        labelEl.textContent = conn.label;
+                        
+                        let labelX, labelY;
+                        
+                        if (conn.curved) {
+                           labelX = startX * 0.25 + controlX * 0.5 + endX * 0.25;
+                           labelY = startY * 0.25 + controlY * 0.5 + endY * 0.25;
+                        } else {
+                           labelX = (startX + endX) / 2;
+                           labelY = (startY + endY) / 2;
+                        }
+                        
+                        labelEl.style.left = `${labelX}px`;
+                        labelEl.style.top = `${labelY}px`;
+                        labelContainer.appendChild(labelEl);
+                    }
+                });
+            }, 100);
+        }
+
+        window.addEventListener('load', renderDiagram);
+        window.addEventListener('resize', renderDiagram);
+    </script>
+
+</body>
+</html>
+
